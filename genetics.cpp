@@ -5,7 +5,7 @@
 #include <stdio.h>
 
 #define crossover_rate 0.42
-#define mutation_rate 0.012
+#define mutation_rate 0.005 // that's a high mutation rate compared to real rates.
 #define POP_SIZE 60
 #define chromo_length 100
 #define gene_length 4
@@ -15,11 +15,15 @@
 
 using namespace std;
 
+void proto_print(string bits); // debugging function. Must delete at final tests.
+
  void PrintGeneSymbol(int value); // prints the gene of a certain value (1,2,3,...,+,-,...)
  void PrintChromos(string bits);
  void Mutate(string &bits);
  void Crossover(string &child1,string &child2);
- string Roulette;
+ float FitnessValue(string bits, float goal);
+ string Roulette();
+ string GenerateRandomBits(int length);
  int Bin2Dec(string bits);
  int ReadBitsval (string bits, int* buffer);
 
@@ -27,15 +31,13 @@ using namespace std;
  	string bits;
  	float fitness;
 
- 	chromo_type():bits(" "),fitness(0.0f){};
- 	chromo_type(string bts,float ftns):bits(bts),fitness(ftns){}
+ 	chromo_type():bits(" "),fitness(0.0f){}; // init if uncasted
+ 	chromo_type(string bts,float ftns):bits(bts),fitness(ftns){} //init if casted
  };
 
 
 int main (){
 	srand (int(time(NULL))); // seeding srand
-
-
 
 	while (true){  //the loop goes until we reach maximum fitness, assigned by user.
 
@@ -83,6 +85,7 @@ ValCounterBits returns the number of value operands (operators and numbers)
 and stores them into a buffer.  We could still use a global buffer and vanish with it every 
 time we use the buffer.
 */
+
 int ValCounterBits (string bits, int* buffer){
 	bool lfOperator = true; // "am I looking for an operator, sir ?" (asks the program)
 	int current_gene = 0; //the name explains itself
@@ -112,7 +115,44 @@ int ValCounterBits (string bits, int* buffer){
 	}
 	return iBuff;
 }
-// The name explains itself. Returns a string with random 0 and runs
+
+/*
+FitnessValue returns the fitness given by 1/(goal-current_fitness),which is "infinite" if the goal actually
+reaches infinity. This way we won't have problems by judging really close values as equal.
+*/
+
+float FitnessValue(string bits,int goal){
+	int Buffer[(int)(chromo_length)/(gene_length)];
+	int numberofelements;
+	float result=(float)0.0;
+	numberofelements = ValCounterBits(bits,Buffer);
+	for (int i = 0 ; i<numberofelements-1;i+=2){
+		switch(Buffer[i]){
+			case 10:
+				result+=Buffer[i+1];
+				break;
+			case 11:
+				result-=Buffer[i+1];
+				break;
+			case 12:
+				result*=Buffer[i+1];
+				break;
+			case 13:
+				result/=Buffer[i+1];
+				break;
+		}
+	}
+	if (result == goal){
+		return 999.0;  // max val returned (could be anything bigger than 1)
+	}
+	else{
+		return fabs(1/(float)(goal-result)); //fabs makes sure it is absolute
+	}
+
+}
+
+
+// The name explains itself. Returns a string with random 0 and ones
 string GenerateRandomBits(int length){
 	string bits;
 	for (int i=0;i<length;++i){
@@ -125,9 +165,11 @@ string GenerateRandomBits(int length){
 	} //this function should be casted the fewer.
 	return bits;
 }
+
 /*Genes are bunch of numbers within a certain range. This
 function prints the symbol represented by certain value.
 In case of numbers, the symbol is the number itself*/
+
 void PrintGeneSymbol (int val){
 	if (val<10){
 		cout << val << " ";
@@ -151,4 +193,13 @@ void PrintGeneSymbol (int val){
 	cout << " ";
 	return ;
 	}
+}
+void proto_print(string bits){ //prints chromossomes
+	for (int i=0;i<bits.length();++i){
+		cout << bits.at(i) ;
+		if ((i+1)%gene_length==0 and i!=0) //debugging
+			cout << " ";
+	}
+	cout << "\n";
+	return ;
 }
