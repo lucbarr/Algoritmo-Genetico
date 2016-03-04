@@ -29,6 +29,7 @@ struct chromo_type{ //we create a struct type for chromossomes
  bool check_solve(chromo_type* Population);
  bool check_all (chromo_type* Population);
 
+ void PrintSymbolSequence(string bits);
  void PrintGeneSymbol(int value); // prints the gene of a certain value (1,2,3,...,+,-,...)
  void PrintChromos(string bits);
  void Mutate(string &bits);
@@ -40,10 +41,10 @@ struct chromo_type{ //we create a struct type for chromossomes
  int Bin2Dec(string bits);
  int ValCounterBits (string bits, int* buffer);
 
- int buffer[BUFF_MAX];
-
 int main (){
 	int Breaker;
+	char Choice;
+	enum Seach_protocol{check_one,check_All};
 	srand (int(time(NULL))); // seeding srand
 	static int GenCounter=0;
 	float goal;
@@ -56,25 +57,44 @@ int main (){
 			Population[i].bits = GenerateRandomBits(chromo_length);
 			Population[i].fitness = 0.0f;
 		}
-		cout << "Goal value floating point number:" << endl;
+		cout << "Goal value number: (Be careful with unreachable numbers!!) " << endl;
 		cin >> goal;
+		cout << "Do you want to find first solution or a " << POP_SIZE << " individuals sized population ?" << endl;
+		cout << "0. First solution " << endl;
+		cout << "1. Population of solutions " << endl;
+		cin >> Breaker;
 		while (true){  //the loop goes until we reach maximum fitness, assigned by user.
 			totalFitness =0;
 			for (i=0;i<POP_SIZE;++i){
 				Population[i].fitness = FitnessValue(Population[i].bits, goal);
 				cout << Population[i].fitness << endl;
-				totalFitness+=(float)Population[i].fitness;
 			}
+			totalFitness = fitnessSum(Population);
 			cout << endl << endl;
 			cout << totalFitness << endl;
 			cout << endl << endl;
-			if(check_all(Population)){
-				cout << "It took " << GenCounter << " generations to find the BEST population!!!" <<endl;
-				cout << "Press any button to continue." << endl;
-				cin >> Breaker;
-				return 0;
+			switch (Breaker){
+				case check_one:
+					if(check_solve(Population)){
+						cin >> Breaker;
+						return 0;
+					}
+				case check_All:
+					if(check_all(Population)){
+						cout << "It took " << GenCounter << " generations to find the BEST population!!!" <<endl;
+						cout << "Here are all the " << POP_SIZE << " solutions we found:" << endl << endl;
+						for (i=0;i<POP_SIZE;++i){
+							cout << i+1 << "th solution : ";
+							PrintSymbolSequence(Population[i].bits);
+						}
+						cout << "Press any button to exit." << endl;
+						cin >> Breaker;
+						return 0;
+				default:
+					break;
 			}
-			else{ //if we don't find a solution, we generate another population.
+			}
+			 //if we don't find a solution, we generate another population.
 				chromo_type tempPop[POP_SIZE];
 				PopPopper=0;
 				while (PopPopper < POP_SIZE){
@@ -84,11 +104,9 @@ int main (){
 					Mutate(child1);
 					Mutate(child2);
 					tempPop[PopPopper].bits = child1;
-					tempPop[PopPopper].fitness = 0.0f;
-					PopPopper++;
+					tempPop[PopPopper++].fitness = 0.0f;
 					tempPop[PopPopper].bits = child2;
-					tempPop[PopPopper].fitness = 0.0f;
-					PopPopper++;
+					tempPop[PopPopper++].fitness = 0.0f;
 				}	
 				for (i=0;i<POP_SIZE;++i){
 					Population[i].bits = tempPop[i].bits;
@@ -96,7 +114,6 @@ int main (){
 				}
 				GenCounter++;
 			}
-		}
 	return 0;
 }
 
@@ -147,8 +164,6 @@ void Crossover(string &child1,string &child2){
 		child1 = temp1;
 		child2 = temp2;
 	}
-
-	
 }
 
 /*
@@ -226,7 +241,6 @@ float FitnessValue(string bits,float goal){
 	else{
 		return fabs(1/(float)(goal-result)); //fabs makes sure it is absolute
 	}
-
 }
 
 float fitnessSum(chromo_type* Population){
@@ -264,7 +278,6 @@ string Roulette (float fitnessSum, chromo_type* Population){
 		}
 	}
 	return Roulette (fitnessSum, Population);
-
 }
 
 /*Genes are bunch of numbers within a certain range. This
@@ -301,20 +314,32 @@ void PrintGeneSymbol (int val){
 void proto_print(string bits){ //prints chromossomes
 	for (int i=0;i<bits.length();++i){
 		cout << bits.at(i) ;
-		if ((i+1)%gene_length==0 and i!=0) //debugging
+		if ((i+1)%gene_length==0 and i!=0)
 			cout << " ";
 	}
 	cout << "\n";
 	return ;
+}
+void PrintSymbolSequence(string bits){
+	int i,numberofelements;
+	int buffer[BUFF_MAX];
+	numberofelements = ValCounterBits(bits, buffer);
+	for (i= 0; i<numberofelements;++i){
+		PrintGeneSymbol(buffer[i]);
+	}
+	cout << endl;
+	return;
 }
 
 bool check_solve(chromo_type* Population){
 	int breaker;
 	for (int i=0;i<POP_SIZE;++i){
 		if (Population[i].fitness >= 999.0f){
-			cout << "ALERT!! ALERT !! We have found an evolved specimen:" << endl;
+			cout << "ALERT!! ALERT !! We have found an evolved specimen:" << endl << endl;
 			proto_print (Population[i].bits);
-			cout << "\n Press any button to continue:" << endl;
+			cout << "\nWhich represents the solution :" << endl;
+			PrintSymbolSequence(Population[i].bits);
+			cout << "\nPress any button to exit." << endl;
 			cin >> breaker;
 			return true;
 		}
