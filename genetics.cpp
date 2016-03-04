@@ -3,31 +3,21 @@
 #include <stdlib.h>
 #include <time.h>
 #include <stdio.h>
+#include <assert.h>
 
-#define crossover_rate 0.42
-#define mutation_rate 0.005 // that's a high mutation rate compared to real rates.
-#define POP_SIZE 60
+#define crossover_rate 0.8
+#define mutation_rate 0.007 // that's a high mutation rate compared to real rates.
+#define POP_SIZE 40
 #define chromo_length 100
 #define gene_length 4
 #define max_allowable_generations 1000
+#define BUFF_MAX 256
 //macro for random number between 0 and 1.
 #define RANDOM_NUM_ ((float)rand()/(RAND_MAX+1.0))
 
 using namespace std;
 
-void proto_print(string bits); // debugging function. Must delete at final tests.
-
- void PrintGeneSymbol(int value); // prints the gene of a certain value (1,2,3,...,+,-,...)
- void PrintChromos(string bits);
- void Mutate(string &bits);
- void Crossover(string &child1,string &child2);
- float FitnessValue(string bits, float goal);
- string Roulette();
- string GenerateRandomBits(int length);
- int Bin2Dec(string bits);
- int ReadBitsval (string bits, int* buffer);
-
- struct chromo_type{ //we create a struct type for chromossomes
+struct chromo_type{ //we create a struct type for chromossomes
  	string bits;
  	float fitness;
 
@@ -35,13 +25,78 @@ void proto_print(string bits); // debugging function. Must delete at final tests
  	chromo_type(string bts,float ftns):bits(bts),fitness(ftns){} //init if casted
  };
 
+ void proto_print(string bits);
+ bool check_solve(chromo_type* Population);
+ bool check_all (chromo_type* Population);
+
+ void PrintGeneSymbol(int value); // prints the gene of a certain value (1,2,3,...,+,-,...)
+ void PrintChromos(string bits);
+ void Mutate(string &bits);
+ void Crossover(string &child1, string &child2);
+ float FitnessValue(string bits,float goal);
+ float fitnessSum(chromo_type* Population);
+ string Roulette(float fitnessSum, chromo_type* Population);
+ string GenerateRandomBits(int length);
+ int Bin2Dec(string bits);
+ int ValCounterBits (string bits, int* buffer);
+
+ int buffer[BUFF_MAX];
 
 int main (){
+	int Breaker;
 	srand (int(time(NULL))); // seeding srand
-
-	while (true){  //the loop goes until we reach maximum fitness, assigned by user.
-
-	}
+	static int GenCounter=0;
+	float goal;
+	float totalFitness;
+	int i=0;
+	int PopPopper=0;
+	chromo_type Population[POP_SIZE];
+	totalFitness = 0.0f;
+		for (i=0;i<POP_SIZE;++i){
+			Population[i].bits = GenerateRandomBits(chromo_length);
+			Population[i].fitness = 0.0f;
+		}
+		cout << "Goal value floating point number:" << endl;
+		cin >> goal;
+		while (true){  //the loop goes until we reach maximum fitness, assigned by user.
+			totalFitness =0;
+			for (i=0;i<POP_SIZE;++i){
+				Population[i].fitness = FitnessValue(Population[i].bits, goal);
+				cout << Population[i].fitness << endl;
+				totalFitness+=(float)Population[i].fitness;
+			}
+			cout << endl << endl;
+			cout << totalFitness << endl;
+			cout << endl << endl;
+			if(check_all(Population)){
+				cout << "It took " << GenCounter << " generations to find the BEST population!!!" <<endl;
+				cout << "Press any button to continue." << endl;
+				cin >> Breaker;
+				return 0;
+			}
+			else{ //if we don't find a solution, we generate another population.
+				chromo_type tempPop[POP_SIZE];
+				PopPopper=0;
+				while (PopPopper < POP_SIZE){
+					string child1 = Roulette(totalFitness, Population);  // Note: must add genre discrimination into chromo_type struct 
+					string child2 = Roulette(totalFitness, Population);  // and adapt the algorithm to sexualized non-hermaphrodite reproduction.
+					Crossover(child1,child2);
+					Mutate(child1);
+					Mutate(child2);
+					tempPop[PopPopper].bits = child1;
+					tempPop[PopPopper].fitness = 0.0f;
+					PopPopper++;
+					tempPop[PopPopper].bits = child2;
+					tempPop[PopPopper].fitness = 0.0f;
+					PopPopper++;
+				}	
+				for (i=0;i<POP_SIZE;++i){
+					Population[i].bits = tempPop[i].bits;
+					Population[i].fitness = tempPop[i].fitness;
+				}
+				GenCounter++;
+			}
+		}
 	return 0;
 }
 
@@ -80,6 +135,22 @@ void Mutate(string &bits){
 	}
 }
 
+/*Crossover function chooses a random position on a chromossome and chrosses two chromossomes.*/
+
+void Crossover(string &child1,string &child2){
+	if(RANDOM_NUM_> crossover_rate){
+		int Crosspoint = (RANDOM_NUM_)*(chromo_length);
+		string temp1;
+		string temp2;
+		temp1 = child1.substr(0,Crosspoint) + child2.substr(Crosspoint,chromo_length);
+		temp2 = child2.substr(0,Crosspoint) + child1.substr(Crosspoint,chromo_length);
+		child1 = temp1;
+		child2 = temp2;
+	}
+
+	
+}
+
 /*
 ValCounterBits returns the number of value operands (operators and numbers)
 and stores them into a buffer.  We could still use a global buffer and vanish with it every 
@@ -113,6 +184,11 @@ int ValCounterBits (string bits, int* buffer){
 		}
 
 	}
+	for (int i=0; i<iBuff; i++){
+		if ( (buffer[i] == 13) && (buffer[i+1] == 0) )	
+			buffer[i] = 10;
+	}
+
 	return iBuff;
 }
 
@@ -121,10 +197,10 @@ FitnessValue returns the fitness given by 1/(goal-current_fitness),which is "inf
 reaches infinity. This way we won't have problems by judging really close values as equal.
 */
 
-float FitnessValue(string bits,int goal){
+float FitnessValue(string bits,float goal){
 	int Buffer[(int)(chromo_length)/(gene_length)];
 	int numberofelements;
-	float result=(float)0.0;
+	float result=0.0f;
 	numberofelements = ValCounterBits(bits,Buffer);
 	for (int i = 0 ; i<numberofelements-1;i+=2){
 		switch(Buffer[i]){
@@ -138,8 +214,10 @@ float FitnessValue(string bits,int goal){
 				result*=Buffer[i+1];
 				break;
 			case 13:
+				if(Buffer[i+1]!=0){
 				result/=Buffer[i+1];
 				break;
+				}
 		}
 	}
 	if (result == goal){
@@ -151,8 +229,17 @@ float FitnessValue(string bits,int goal){
 
 }
 
+float fitnessSum(chromo_type* Population){
+	float Result=0.0;
+	for (int i=0;i<POP_SIZE;++i){
+		Result+=Population[i].fitness;
+	}
+	return Result;
+}
 
-// The name explains itself. Returns a string with random 0 and ones
+
+/* The name explains itself. Returns a string with random zeroes and ones */
+
 string GenerateRandomBits(int length){
 	string bits;
 	for (int i=0;i<length;++i){
@@ -164,6 +251,20 @@ string GenerateRandomBits(int length){
 		}
 	} //this function should be casted the fewer.
 	return bits;
+}
+
+string Roulette (float fitnessSum, chromo_type* Population){
+	float CutValue = (RANDOM_NUM_)*(fitnessSum);
+	float fitnesscounter = 0.0f;
+
+	for (int i=0;i<POP_SIZE;++i){
+		fitnesscounter+=Population[i].fitness;
+		if (fitnesscounter>= CutValue){
+			return Population[i].bits;
+		}
+	}
+	return Roulette (fitnessSum, Population);
+
 }
 
 /*Genes are bunch of numbers within a certain range. This
@@ -194,6 +295,9 @@ void PrintGeneSymbol (int val){
 	return ;
 	}
 }
+
+/*proto_print prints a single chromossome*/
+
 void proto_print(string bits){ //prints chromossomes
 	for (int i=0;i<bits.length();++i){
 		cout << bits.at(i) ;
@@ -202,4 +306,29 @@ void proto_print(string bits){ //prints chromossomes
 	}
 	cout << "\n";
 	return ;
+}
+
+bool check_solve(chromo_type* Population){
+	int breaker;
+	for (int i=0;i<POP_SIZE;++i){
+		if (Population[i].fitness >= 999.0f){
+			cout << "ALERT!! ALERT !! We have found an evolved specimen:" << endl;
+			proto_print (Population[i].bits);
+			cout << "\n Press any button to continue:" << endl;
+			cin >> breaker;
+			return true;
+		}
+	}
+	return false;
+}
+
+bool check_all (chromo_type* Population){
+	int breaker;
+	for (int i=0;i<POP_SIZE;++i){
+		if (Population[i].fitness < 990.9f){
+			return false;
+		}
+	}
+	cout << "HOLY SMOKES!!! YOUR POPULATION IS ULTRA EVOLVED!!!! " << endl;
+	return true;
 }
