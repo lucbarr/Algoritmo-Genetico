@@ -4,6 +4,7 @@
 #include <time.h>
 #include <stdio.h>
 #include <assert.h>
+#include "biology.h"
 
 #define crossover_rate 0.8
 #define mutation_rate 0.007 // that's a high mutation rate compared to real rates.
@@ -16,30 +17,6 @@
 #define RANDOM_NUM_ ((float)rand()/(RAND_MAX+1.0))
 
 using namespace std;
-
-struct chromo_type{ //we create a struct type for chromossomes
- 	string bits;
- 	float fitness;
-
- 	chromo_type():bits(" "),fitness(0.0f){}; // init if uncasted
- 	chromo_type(string bts,float ftns):bits(bts),fitness(ftns){} //init if casted
- };
-
- void proto_print(string bits);
- bool check_solve(chromo_type* Population);
- bool check_all (chromo_type* Population);
-
- void PrintSymbolSequence(string bits);
- void PrintGeneSymbol(int value); // prints the gene of a certain value (1,2,3,...,+,-,...)
- void PrintChromos(string bits);
- void Mutate(string &bits);
- void Crossover(string &child1, string &child2);
- float FitnessValue(string bits,float goal);
- float fitnessSum(chromo_type* Population);
- string Roulette(float fitnessSum, chromo_type* Population);
- string GenerateRandomBits(int length);
- int Bin2Dec(string bits);
- int ValCounterBits (string bits, int* buffer);
 
 int main (){
 	int Breaker;
@@ -67,15 +44,12 @@ int main (){
 			totalFitness =0;
 			for (i=0;i<POP_SIZE;++i){
 				Population[i].fitness = FitnessValue(Population[i].bits, goal);
-				cout << Population[i].fitness << endl;
 			}
 			totalFitness = fitnessSum(Population);
-			cout << endl << endl;
-			cout << totalFitness << endl;
-			cout << endl << endl;
 			switch (Breaker){
 				case check_one:
 					if(check_solve(Population)){
+						cout << "(Solution found in " << GenCounter << "th Generation " << "for goal = " << goal << ")"<< endl;
 						cin >> Breaker;
 						return 0;
 					}
