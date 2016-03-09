@@ -3,16 +3,9 @@
 #include <stdlib.h>
 #include <time.h>
 #include <stdio.h>
-#include <assert.h>
 #include "biology.h"
+#include "util.h"
 
-#define crossover_rate 0.8
-#define mutation_rate 0.007 // that's a high mutation rate compared to real rates.
-#define POP_SIZE 40
-#define chromo_length 100
-#define gene_length 4
-#define max_allowable_generations 1000
-#define BUFF_MAX 256
 //macro for random number between 0 and 1.
 #define RANDOM_NUM_ ((float)rand()/(RAND_MAX+1.0))
 
@@ -56,7 +49,7 @@ int main (){
 				case check_All:
 					if(check_all(Population)){
 						cout << "It took " << GenCounter << " generations to find the BEST population!!!" <<endl;
-						cout << "Here are all the " << POP_SIZE << " solutions we found:" << endl << endl;
+						cout << "Here are all the " << POP_SIZE << " solutions we found (some may be equal):" << endl << endl;
 						for (i=0;i<POP_SIZE;++i){
 							cout << i+1 << "th solution : ";
 							PrintSymbolSequence(Population[i].bits);
