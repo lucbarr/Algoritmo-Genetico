@@ -3,8 +3,8 @@
 #include <stdlib.h>
 #include <time.h>
 #include <stdio.h>
-#include "biology.h"
-#include "util.h"
+#include "biology.h" 
+#include "util.h" // contains constants
 
 //macro for random number between 0 and 1.
 #define RANDOM_NUM_ ((float)rand()/(RAND_MAX+1.0))
@@ -210,6 +210,8 @@ float FitnessValue(string bits,float goal){
 	}
 }
 
+/*fitnessSum returns total fitness of a population*/
+
 float fitnessSum(chromo_type* Population){
 	float Result=0.0;
 	for (int i=0;i<POP_SIZE;++i){
@@ -233,6 +235,9 @@ string GenerateRandomBits(int length){
 	} //this function should be casted the fewer.
 	return bits;
 }
+
+/*Roulette Wheel method to select a specimen to breed. It's a method
+biased to select the ones with the highest fitness evaluation.*/
 
 string Roulette (float fitnessSum, chromo_type* Population){
 	float CutValue = (RANDOM_NUM_)*(fitnessSum);
@@ -287,16 +292,24 @@ void proto_print(string bits){ //prints chromossomes
 	cout << "\n";
 	return ;
 }
+
+/* Prints the sequence operator-number-operator of a certain
+specimen*/
+
 void PrintSymbolSequence(string bits){
 	int i,numberofelements;
 	int buffer[BUFF_MAX];
 	numberofelements = ValCounterBits(bits, buffer);
+	cout << "0 " ; // every sum starts with zero.
 	for (i= 0; i<numberofelements;++i){
 		PrintGeneSymbol(buffer[i]);
 	}
 	cout << endl;
 	return;
 }
+
+/* check_solve checks if a single chromossome is a solution,
+returning a boolean value */
 
 bool check_solve(chromo_type* Population){
 	int breaker;
@@ -313,6 +326,9 @@ bool check_solve(chromo_type* Population){
 	}
 	return false;
 }
+
+/* check_all checks if a whole population is a population of
+solutions, returning a boolean value */
 
 bool check_all (chromo_type* Population){
 	int breaker;
