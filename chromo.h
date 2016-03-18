@@ -9,6 +9,5 @@ struct chromo_type{ //we create a struct type for chromossomes
  	chromo_type():bits(" "),fitness(0.0f){}; // init if uncasted
  	chromo_type(std::string bts,float ftns):bits(bts),fitness(ftns){} //init if casted
  };
-
-
+ 
  #endif

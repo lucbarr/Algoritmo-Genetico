@@ -4,6 +4,17 @@ A project for learning and practicing the concept of genetic algorithms in probl
 
 # How to run
 
-Just compile the genetics.cpp with g++ compiler.
+You will need:
 
-	~$ g++ genetics.cpp
+* g++ compiler (I recommend 4.8.4 or a newer version) 
+
+Open terminal then type:
+
+	~$ g++ -c genetics.cpp biology.cpp
+Then:
+
+	~$ g++ biology.o genetics.o
+
+Now run the executable. 
+
+	~$ ./a.out

@@ -1,15 +1,12 @@
 #ifndef BIOLOGY_H
 #define BIOLOGY_H
-#include <string.h>
 #include "chromo.h"
-
- void proto_print(std::string bits);
  bool check_solve(chromo_type* Population);
  bool check_all (chromo_type* Population);
 
  void PrintSymbolSequence(std::string bits);
- void PrintGeneSymbol(int value); // prints the gene of a certain value (1,2,3,...,+,-,...)
- void PrintChromos(std::string bits);
+ void PrintGeneSymbol(int value);
+ void PrintChromo(std::string bits);
  void Mutate(std::string &bits);
  void Crossover(std::string &child1, std::string &child2);
  float FitnessValue(std::string bits,float goal);
