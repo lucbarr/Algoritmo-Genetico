@@ -8,13 +8,10 @@ You will need:
 
 * g++ compiler (I recommend 4.8.4 or a newer version) 
 
-Open terminal then type:
+Simply make:
 
-	~$ g++ -c genetics.cpp biology.cpp
-Then:
-
-	~$ g++ biology.o genetics.o
+	~$ make
 
 Now run the executable. 
 
-	~$ ./a.out
+	~$ ./darwin
